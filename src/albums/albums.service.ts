@@ -4,12 +4,16 @@ import { Album } from './album.interface';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { FavoritesListenerService } from 'src/favorites-listener/favorites-listener.service';
+import { TracksService } from 'src/tracks/tracks.service';
 
 @Injectable()
 export class AlbumsService {
   private albums: Album[] = [];
 
-  constructor(private favoritesListenerService: FavoritesListenerService) {}
+  constructor(
+    private favoritesListenerService: FavoritesListenerService,
+    private tracksService: TracksService,
+  ) {}
 
   findAll(): Album[] {
     return this.albums;
@@ -50,6 +54,14 @@ export class AlbumsService {
     if (albumIndex === -1) {
       throw new NotFoundException(`Album with id ${id} not found`);
     }
+
+    const tracks = this.tracksService.findAll();
+    tracks.forEach((track) => {
+      if (track.albumId === id) {
+        this.tracksService.update(track.id, { albumId: null });
+      }
+    });
+
     this.albums.splice(albumIndex, 1);
     this.favoritesListenerService.handleAlbumRemoved(id);
   }
