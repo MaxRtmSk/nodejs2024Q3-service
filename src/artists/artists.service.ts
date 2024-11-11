@@ -1,27 +1,29 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Artist } from './artist.interface';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { FavoritesListenerService } from 'src/favorites-listener/favorites-listener.service';
 
 @Injectable()
 export class ArtistsService {
   private artists: Artist[] = [];
 
+  constructor(private favoritesListenerService: FavoritesListenerService) {}
+
   findAll(): Artist[] {
     return this.artists;
   }
-
-  findOne(id: string): Artist {
-    const artist = this.artists.find((artist) => artist.id === id);
+  findOneOrFail(id: string): Artist {
+    const artist = this.findOne(id);
     if (!artist) {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
     return artist;
+  }
+
+  findOne(id: string): Artist | undefined {
+    return this.artists.find((artist) => artist.id === id);
   }
 
   create(createArtistDto: CreateArtistDto): Artist {
@@ -47,6 +49,7 @@ export class ArtistsService {
     if (artistIndex === -1) {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
+    this.favoritesListenerService.handleArtistRemoved(id);
     this.artists.splice(artistIndex, 1);
   }
 }

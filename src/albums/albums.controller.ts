@@ -29,7 +29,7 @@ export class AlbumsController {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid album ID');
     }
-    return this.albumsService.findOne(id);
+    return this.albumsService.findOneOrFail(id);
   }
 
   @Post()

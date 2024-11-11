@@ -1,23 +1,26 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Track } from './track.interface';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import { FavoritesListenerService } from 'src/favorites-listener/favorites-listener.service';
 
 @Injectable()
 export class TracksService {
   private tracks: Track[] = [];
 
+  constructor(private favoritesListenerService: FavoritesListenerService) {}
+
   findAll(): Track[] {
     return this.tracks;
   }
 
-  findOne(id: string): Track {
-    const track = this.tracks.find((track) => track.id === id);
+  findOne(id: string): Track | undefined {
+    return this.tracks.find((track) => track.id === id);
+  }
+
+  findOneOrFail(id: string): Track {
+    const track = this.findOne(id);
     if (!track) {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
@@ -48,5 +51,6 @@ export class TracksService {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
     this.tracks.splice(trackIndex, 1);
+    this.favoritesListenerService.handleTrackRemoved(id);
   }
 }

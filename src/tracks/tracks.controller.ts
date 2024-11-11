@@ -29,7 +29,7 @@ export class TracksController {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    return this.tracksService.findOne(id);
+    return this.tracksService.findOneOrFail(id);
   }
 
   @Post()
