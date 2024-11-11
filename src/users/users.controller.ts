@@ -49,6 +49,7 @@ export class UsersController {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
+
     return this.usersService.update(id, updatePasswordDto);
   }
 
